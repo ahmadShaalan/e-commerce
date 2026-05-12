@@ -10,8 +10,30 @@ import {
   ShoppingBag,
   Star,
 } from 'lucide-react';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
+
+const loginSchema = z.object({
+  email: z.string().min(1, 'Email is required').email('Invalid email'),
+  password: z.string().min(8, 'At least 8 characters'),
+});
+
+type LoginValues = z.infer<typeof loginSchema>;
 
 export function LoginPage() {
+  const {
+    register,
+    handleSubmit,
+    formState: { isSubmitting, errors },
+  } = useForm<LoginValues>({
+    resolver: zodResolver(loginSchema),
+  });
+
+  const onSubmit = (data: LoginValues) => {
+    console.log(data);
+  };
+
   return (
     <div className="grid min-h-screen grid-cols-1 bg-zinc-50 font-sans lg:grid-cols-2">
       {/* Left: form */}
@@ -39,7 +61,11 @@ export function LoginPage() {
           </p>
 
           {/* Form */}
-          <form className="mt-8 space-y-4">
+          <form
+            noValidate
+            className="mt-8 space-y-4"
+            onSubmit={handleSubmit(onSubmit)}
+          >
             <div>
               <label
                 className="mb-1.5 block text-sm font-medium text-zinc-800"
@@ -52,11 +78,17 @@ export function LoginPage() {
                 <input
                   id="email"
                   type="email"
+                  {...register('email')}
                   autoComplete="email"
                   placeholder="you@example.com"
                   className="w-full rounded-lg border border-zinc-300 bg-white py-2.5 pl-10 pr-3 text-sm placeholder-zinc-400 outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
                 />
               </div>
+              {errors.email && (
+                <p className="mt-1 text-xs text-red-600">
+                  {errors.email.message}
+                </p>
+              )}
             </div>
 
             <div>
@@ -79,6 +111,7 @@ export function LoginPage() {
                 <input
                   id="password"
                   type="password"
+                  {...register('password')}
                   autoComplete="current-password"
                   placeholder="••••••••"
                   className="w-full rounded-lg border border-zinc-300 bg-white py-2.5 pl-10 pr-10 text-sm placeholder-zinc-400 outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
@@ -87,9 +120,14 @@ export function LoginPage() {
                   type="button"
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600"
                 >
-                  <Eye className="h-4 w-4" />
+                  <Eye className="h-4 cursor-pointer w-4" />
                 </button>
               </div>
+              {errors.password && (
+                <p className="mt-1 text-xs text-red-600">
+                  {errors.password.message}
+                </p>
+              )}
             </div>
 
             <label className="flex items-center gap-2 text-sm text-zinc-700">
@@ -102,7 +140,8 @@ export function LoginPage() {
 
             <button
               type="submit"
-              className="mt-2 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-zinc-900 px-4 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-zinc-800"
+              disabled={isSubmitting}
+              className="mt-2 cursor-pointer inline-flex w-full items-center justify-center gap-2 rounded-lg bg-zinc-900 px-4 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-zinc-800"
             >
               Sign in
               <ArrowRight className="h-4 w-4" />
