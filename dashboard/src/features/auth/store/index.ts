@@ -57,24 +57,34 @@ export const useAuthStore = create<AuthState & AuthAction>((set, get) => ({
  * Wires the store to Supabase's auth events.
  * Call this once when the app starts.
  */
-export function initAuth() {
+
+export async function initAuth() {
   const { setSession, loadProfile } = useAuthStore.getState();
 
-  // 1. Initial check — is there a session in localStorage already?
-  supabase.auth.getSession().then(({ data }) => {
-    setSession(data.session);
-    if (data.session) loadProfile();
-  });
+  //   1. Initial check — is there a session in localStorage already?
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+
+  setSession(session);
+
+  if (session) {
+    await loadProfile();
+  }
 
   // 2. Subscribe to future changes — sign-in, sign-out, token refresh.
+
   const {
     data: { subscription },
-  } = supabase.auth.onAuthStateChange((_event, session) => {
+  } = supabase.auth.onAuthStateChange(async (_event, session) => {
     setSession(session);
+
     if (session) {
-      loadProfile();
+      await loadProfile();
     } else {
-      useAuthStore.setState({ profile: null });
+      useAuthStore.setState({
+        profile: null,
+      });
     }
   });
 
