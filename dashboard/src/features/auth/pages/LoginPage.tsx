@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import {
   Zap,
   Mail,
@@ -13,19 +13,11 @@ import {
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { loginWithEmail } from '../api/authApi';
 
 const loginSchema = z.object({
   email: z.string().min(1, 'Email is required').email('Invalid email'),
-  password: z
-    .string()
-    .min(8, 'Password must be at least 8 characters')
-    .regex(/[a-z]/, 'Password must contain at least one lowercase letter')
-    .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
-    .regex(/[0-9]/, 'Password must contain at least one number')
-    .regex(
-      /[^A-Za-z0-9]/,
-      'Password must contain at least one special character',
-    ),
+  password: z.string().min(1, 'Password is required'),
 });
 
 type LoginValues = z.infer<typeof loginSchema>;
@@ -39,8 +31,15 @@ export function LoginPage() {
     resolver: zodResolver(loginSchema),
   });
 
-  const onSubmit = (data: LoginValues) => {
-    console.log(data);
+  const navigate = useNavigate();
+
+  const onSubmit = async (data: LoginValues) => {
+    try {
+      await loginWithEmail(data.email, data.password);
+      navigate('/dashboard');
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   return (
