@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import {
   Zap,
   Mail,
@@ -38,8 +38,15 @@ export function LoginPage() {
     resolver: zodResolver(loginSchema),
   });
 
+  const navigate = useNavigate();
+
   const onSubmit = async (data: LoginValues) => {
-    await loginWithEmail(data.email, data.password);
+    try {
+      await loginWithEmail(data.email, data.password);
+      navigate('/dashboard');
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   return (
