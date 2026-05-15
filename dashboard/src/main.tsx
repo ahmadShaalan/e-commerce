@@ -4,7 +4,7 @@ import { RouterProvider } from 'react-router-dom';
 
 import { initAuth } from './features/auth/store';
 import './index.css';
-import { router } from './routes/routes';
+import { router } from './routes';
 
 initAuth();
 

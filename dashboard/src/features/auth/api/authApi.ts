@@ -14,3 +14,7 @@ export const getCurrentProfile = async (userId: string) => {
     .eq('id', userId)
     .single();
 };
+
+export const signOut = async () => {
+  return await supabase.auth.signOut();
+};

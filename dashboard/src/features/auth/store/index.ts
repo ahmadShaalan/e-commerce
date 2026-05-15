@@ -14,6 +14,7 @@ export interface Profile {
 interface AuthState {
   session: Session | null;
   profile: Profile | null;
+  loading: boolean;
 }
 
 interface AuthAction {
@@ -24,6 +25,7 @@ interface AuthAction {
 export const useAuthStore = create<AuthState & AuthAction>((set, get) => ({
   session: null,
   profile: null,
+  loading: true,
 
   setSession: (session) =>
     set({
@@ -70,6 +72,10 @@ export async function initAuth() {
 
   if (session) {
     await loadProfile();
+
+    useAuthStore.setState({
+      loading: false,
+    });
   }
 
   // 2. Subscribe to future changes — sign-in, sign-out, token refresh.
@@ -84,6 +90,9 @@ export async function initAuth() {
     } else {
       useAuthStore.setState({
         profile: null,
+      });
+      useAuthStore.setState({
+        loading: false,
       });
     }
   });
