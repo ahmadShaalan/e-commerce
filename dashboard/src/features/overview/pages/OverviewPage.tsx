@@ -1,8 +1,14 @@
-import { CheckCircle2 } from 'lucide-react';
+import { CheckCircle2, LogOut } from 'lucide-react';
 import { useAuthStore } from '../../auth/store';
+import { signOut } from '../../auth/api/authApi';
 
 export function OverviewPage() {
-  const { profile } = useAuthStore((state) => state);
+  const profile = useAuthStore((s) => s.profile);
+
+  const handleSignOut = async () => {
+    await signOut();
+    // No navigate() call needed — ProtectedRoute auto-redirects to "/" when session becomes null.
+  };
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans">
@@ -29,6 +35,14 @@ export function OverviewPage() {
         <p className="mt-6 text-sm text-zinc-600">
           The real Lumen dashboard is coming in the next few lessons.
         </p>
+
+        <button
+          onClick={handleSignOut}
+          className="mt-6 inline-flex items-center gap-2 rounded-lg border border-zinc-300 bg-white px-4 py-2 text-sm font-medium text-zinc-700 transition hover:bg-zinc-50"
+        >
+          <LogOut className="h-4 w-4" />
+          Sign out
+        </button>
       </div>
     </div>
   );

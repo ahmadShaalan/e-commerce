@@ -1,14 +1,14 @@
 import { supabase } from '../../../lib/supabase';
 
 export const loginWithEmail = async (email: string, password: string) => {
-  return await supabase.auth.signInWithPassword({
+  await supabase.auth.signInWithPassword({
     email,
     password,
   });
 };
 
-export const getCurrentProfile = async (userId: string) => {
-  return await supabase
+export const getCurrentProfile = (userId: string) => {
+  return supabase
     .from('profiles')
     .select('id, full_name, phone, avatar_url, role')
     .eq('id', userId)
@@ -16,5 +16,5 @@ export const getCurrentProfile = async (userId: string) => {
 };
 
 export const signOut = async () => {
-  return await supabase.auth.signOut();
+  await supabase.auth.signOut();
 };
