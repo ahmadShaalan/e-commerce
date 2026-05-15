@@ -1,4 +1,7 @@
 import { Link } from 'react-router-dom';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 import {
   Zap,
   Mail,
@@ -11,7 +14,33 @@ import {
   Star,
 } from 'lucide-react';
 
+const loginSchema = z.object({
+  email: z.string().min(1, 'Email is required').email('Invalid email'),
+
+  password: z
+    .string()
+    .min(8, 'Password must be at least 8 characters')
+    .regex(/[a-z]/, 'Password must contain at least one lowercase letter')
+    .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
+    .regex(/[0-9]/, 'Password must contain at least one number')
+    .regex(
+      /[^A-Za-z0-9]/,
+      'Password must contain at least one special character',
+    ),
+});
+type LoginValues = z.infer<typeof loginSchema>;
+
 export function LoginPage() {
+  const form = useForm<LoginValues>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: { email: '', password: '' },
+  });
+
+  const onSubmit = (values: LoginValues) => {
+    console.log('Form submitted with:', values);
+    // We'll actually sign in next lesson.
+  };
+
   return (
     <div className="grid min-h-screen grid-cols-1 bg-zinc-50 font-sans lg:grid-cols-2">
       {/* Left: form */}
@@ -39,7 +68,11 @@ export function LoginPage() {
           </p>
 
           {/* Form */}
-          <form className="mt-8 space-y-4">
+          <form
+            onSubmit={form.handleSubmit(onSubmit)}
+            className="mt-8 space-y-4"
+            noValidate
+          >
             <div>
               <label
                 className="mb-1.5 block text-sm font-medium text-zinc-800"
@@ -54,9 +87,16 @@ export function LoginPage() {
                   type="email"
                   autoComplete="email"
                   placeholder="you@example.com"
-                  className="w-full rounded-lg border border-zinc-300 bg-white py-2.5 pl-10 pr-3 text-sm placeholder-zinc-400 outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
+                  {...form.register('email')}
+                  aria-invalid={!!form.formState.errors.email}
+                  className="w-full rounded-lg border border-zinc-300 bg-white py-2.5 pl-10 pr-3 text-sm placeholder-zinc-400 outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 aria-[invalid=true]:border-red-500"
                 />
               </div>
+              {form.formState.errors.email && (
+                <p className="mt-1 text-xs text-red-600">
+                  {form.formState.errors.email.message}
+                </p>
+              )}
             </div>
 
             <div>
@@ -81,7 +121,9 @@ export function LoginPage() {
                   type="password"
                   autoComplete="current-password"
                   placeholder="••••••••"
-                  className="w-full rounded-lg border border-zinc-300 bg-white py-2.5 pl-10 pr-10 text-sm placeholder-zinc-400 outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
+                  {...form.register('password')}
+                  aria-invalid={!!form.formState.errors.password}
+                  className="w-full rounded-lg border border-zinc-300 bg-white py-2.5 pl-10 pr-10 text-sm placeholder-zinc-400 outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 aria-[invalid=true]:border-red-500"
                 />
                 <button
                   type="button"
@@ -90,6 +132,11 @@ export function LoginPage() {
                   <Eye className="h-4 w-4" />
                 </button>
               </div>
+              {form.formState.errors.password && (
+                <p className="mt-1 text-xs text-red-600">
+                  {form.formState.errors.password.message}
+                </p>
+              )}
             </div>
 
             <label className="flex items-center gap-2 text-sm text-zinc-700">
@@ -118,7 +165,7 @@ export function LoginPage() {
         </div>
       </div>
 
-      {/* Right: decorative panel */}
+      {/* Right: decorative panel (unchanged) */}
       <div className="relative hidden overflow-hidden bg-zinc-900 lg:block">
         <div className="absolute inset-0 bg-gradient-to-br from-emerald-600/30 via-zinc-900 to-zinc-950" />
         <div
