@@ -1,4 +1,8 @@
-import { Link } from 'react-router-dom';
+import { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 import {
   Zap,
   Mail,
@@ -10,33 +14,35 @@ import {
   ShoppingBag,
   Star,
 } from 'lucide-react';
-import { z } from 'zod';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
+import { signInWithEmail } from '../api/authApi';
 
 const loginSchema = z.object({
-  email: z
-    .string()
-    .min(1, {
-      error: 'email is required',
-    })
-    .email(),
-  password: z.string().min(1, 'password is required'),
+  email: z.string().min(1, 'Required').email('Invalid email'),
+  password: z.string().min(8, 'At least 8 characters'),
 });
 
-type LoginValue = z.infer<typeof loginSchema>;
+type LoginValues = z.infer<typeof loginSchema>;
 
 export function LoginPage() {
-  const {
-    handleSubmit,
-    register,
-    formState: { isSubmitting, errors },
-  } = useForm<LoginValue>({
+  const navigate = useNavigate();
+  const [submitError, setSubmitError] = useState<string | null>(null);
+
+  const form = useForm<LoginValues>({
     resolver: zodResolver(loginSchema),
+    defaultValues: { email: '', password: '' },
   });
 
-  const onSubmit = (data: LoginValue) => {
-    console.log(data);
+  const onSubmit = async (values: LoginValues) => {
+    setSubmitError(null);
+
+    const { error } = await signInWithEmail(values.email, values.password);
+
+    if (error) {
+      setSubmitError(error.message);
+      return;
+    }
+
+    navigate('/dashboard');
   };
 
   return (
@@ -65,8 +71,19 @@ export function LoginPage() {
             Sign in to manage your store.
           </p>
 
+          {/* Error banner */}
+          {submitError && (
+            <div className="mt-6 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+              {submitError}
+            </div>
+          )}
+
           {/* Form */}
-          <form onSubmit={handleSubmit(onSubmit)} className="mt-8 space-y-4">
+          <form
+            onSubmit={form.handleSubmit(onSubmit)}
+            className="mt-8 space-y-4"
+            noValidate
+          >
             <div>
               <label
                 className="mb-1.5 block text-sm font-medium text-zinc-800"
@@ -79,15 +96,16 @@ export function LoginPage() {
                 <input
                   id="email"
                   type="email"
-                  {...register('email')}
                   autoComplete="email"
                   placeholder="you@example.com"
-                  className="w-full rounded-lg border border-zinc-300 bg-white py-2.5 pl-10 pr-3 text-sm placeholder-zinc-400 outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
+                  {...form.register('email')}
+                  aria-invalid={!!form.formState.errors.email}
+                  className="w-full rounded-lg border border-zinc-300 bg-white py-2.5 pl-10 pr-3 text-sm placeholder-zinc-400 outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 aria-[invalid=true]:border-red-500"
                 />
               </div>
-              {errors.email && (
+              {form.formState.errors.email && (
                 <p className="mt-1 text-xs text-red-600">
-                  {errors.email.message}
+                  {form.formState.errors.email.message}
                 </p>
               )}
             </div>
@@ -112,10 +130,11 @@ export function LoginPage() {
                 <input
                   id="password"
                   type="password"
-                  {...register('password')}
                   autoComplete="current-password"
                   placeholder="••••••••"
-                  className="w-full rounded-lg border border-zinc-300 bg-white py-2.5 pl-10 pr-10 text-sm placeholder-zinc-400 outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
+                  {...form.register('password')}
+                  aria-invalid={!!form.formState.errors.password}
+                  className="w-full rounded-lg border border-zinc-300 bg-white py-2.5 pl-10 pr-10 text-sm placeholder-zinc-400 outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 aria-[invalid=true]:border-red-500"
                 />
                 <button
                   type="button"
@@ -124,9 +143,9 @@ export function LoginPage() {
                   <Eye className="h-4 w-4" />
                 </button>
               </div>
-              {errors.password && (
+              {form.formState.errors.password && (
                 <p className="mt-1 text-xs text-red-600">
-                  {errors.password.message}
+                  {form.formState.errors.password.message}
                 </p>
               )}
             </div>
@@ -141,11 +160,17 @@ export function LoginPage() {
 
             <button
               type="submit"
-              disabled={isSubmitting}
-              className="mt-2 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-zinc-900 px-4 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-zinc-800"
+              disabled={form.formState.isSubmitting}
+              className="mt-2 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-zinc-900 px-4 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              Sign in
-              <ArrowRight className="h-4 w-4" />
+              {form.formState.isSubmitting ? (
+                'Signing in…'
+              ) : (
+                <>
+                  Sign in
+                  <ArrowRight className="h-4 w-4" />
+                </>
+              )}
             </button>
           </form>
 
@@ -158,7 +183,7 @@ export function LoginPage() {
         </div>
       </div>
 
-      {/* Right: decorative panel */}
+      {/* Right: decorative panel (unchanged) */}
       <div className="relative hidden overflow-hidden bg-zinc-900 lg:block">
         <div className="absolute inset-0 bg-gradient-to-br from-emerald-600/30 via-zinc-900 to-zinc-950" />
         <div
