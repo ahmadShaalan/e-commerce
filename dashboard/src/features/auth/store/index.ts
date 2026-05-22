@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import type { Session } from '@supabase/supabase-js';
 import { getCurrentProfile } from '../api/authApi';
 import { supabase } from '../../../lib/supabase';
+import { devtools } from 'zustand/middleware';
 
 interface Profile {
   id: string;
@@ -21,30 +22,30 @@ interface AuthAction {
   loadProfile: () => Promise<void>;
 }
 
-export const useAuthStore = create<AuthState & AuthAction>((set, get) => ({
-  session: null,
-  profile: null,
-
-  setSession: (session) => set({ session: session }),
-
-  loadProfile: async () => {
-    const userId = get().session?.user.id;
-
-    if (!userId) {
-      set({ profile: null });
-      return;
-    }
-
-    const { data, error } = await getCurrentProfile(userId);
-
-    if (error) {
-      set({ profile: null });
-      return;
-    }
-
-    set({ profile: data as Profile });
-  },
-}));
+export const useAuthStore = create<AuthState & AuthAction>()(
+  devtools(
+    (set, get) => ({
+      session: null,
+      profile: null,
+      setSession: (session) => set({ session }, false, 'auth/setSession'),
+      loadProfile: async () => {
+        const userId = get().session?.user.id;
+        if (!userId) {
+          set({ profile: null }, false, 'auth/clearProfile');
+          return;
+        }
+        const { data, error } = await getCurrentProfile(userId);
+        if (error) {
+          console.log(error);
+          set({ profile: null }, false, 'auth/profileError');
+          return;
+        }
+        set({ profile: data as Profile }, false, 'auth/loadProfile');
+      },
+    }),
+    { name: 'auth-store' },
+  ),
+);
 
 export const initAuth = async () => {
   const { setSession, loadProfile } = useAuthStore.getState();
