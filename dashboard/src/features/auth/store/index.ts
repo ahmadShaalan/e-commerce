@@ -15,6 +15,7 @@ interface Profile {
 interface AuthState {
   session: Session | null;
   profile: Profile | null;
+  loading: boolean;
 }
 
 interface AuthAction {
@@ -27,7 +28,10 @@ export const useAuthStore = create<AuthState & AuthAction>()(
     (set, get) => ({
       session: null,
       profile: null,
+      loading: true,
+
       setSession: (session) => set({ session }, false, 'auth/setSession'),
+
       loadProfile: async () => {
         const userId = get().session?.user.id;
         if (!userId) {
@@ -58,6 +62,7 @@ export const initAuth = async () => {
   if (data.session) {
     await loadProfile();
   }
+  useAuthStore.setState({ loading: false });
 
   // 2- watch for any change signin - signout.
   const {
@@ -68,6 +73,7 @@ export const initAuth = async () => {
     if (session) {
       if (event === 'SIGNED_IN' || event === 'USER_UPDATED') {
         await loadProfile();
+        useAuthStore.setState({ loading: false });
       }
     }
   });
