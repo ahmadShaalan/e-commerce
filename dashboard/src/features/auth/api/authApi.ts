@@ -15,3 +15,9 @@ export async function getCurrentProfile(userId: string) {
     .eq('id', userId)
     .single();
 }
+
+export const forgotPassword = async (email: string) => {
+  const redirectTo = `${window.location.origin}/forgot-password`;
+
+  return supabase.auth.resetPasswordForEmail(email, { redirectTo });
+};

@@ -1,7 +1,30 @@
 import { Link } from 'react-router-dom';
+import { z } from 'zod';
 import { Zap, KeyRound, Mail, Send, ArrowLeft } from 'lucide-react';
+import { useForm } from 'react-hook-form';
+
+import { forgotPassword } from '../api/authApi';
+import { zodResolver } from '@hookform/resolvers/zod';
+
+const forgotPasswordSchema = z.object({
+  email: z.string().min(1, 'email is required').email(),
+});
+
+type ForgotPasswordValues = z.infer<typeof forgotPasswordSchema>;
 
 export function ForgotPasswordPage() {
+  const {
+    handleSubmit,
+    register,
+    formState: { errors, isSubmitting },
+  } = useForm<ForgotPasswordValues>({
+    resolver: zodResolver(forgotPasswordSchema),
+  });
+
+  const onSubmit = async (data: ForgotPasswordValues) => {
+    await forgotPassword(data.email);
+  };
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-zinc-50 px-6 py-12 font-sans">
       <div className="w-full max-w-sm">
@@ -30,7 +53,7 @@ export function ForgotPasswordPage() {
             Enter your email address and we'll send you a reset link.
           </p>
 
-          <form className="mt-6 space-y-4">
+          <form onSubmit={handleSubmit(onSubmit)} className="mt-6 space-y-4">
             <div>
               <label
                 className="mb-1.5 block text-sm font-medium text-zinc-800"
@@ -43,15 +66,22 @@ export function ForgotPasswordPage() {
                 <input
                   id="email"
                   type="email"
+                  {...register('email')}
                   autoComplete="email"
                   placeholder="you@example.com"
                   className="w-full rounded-lg border border-zinc-300 bg-white py-2.5 pl-10 pr-3 text-sm placeholder-zinc-400 outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
                 />
               </div>
+              {errors.email && (
+                <p className="mt-1 text-xs text-red-600">
+                  {errors.email.message}
+                </p>
+              )}{' '}
             </div>
 
             <button
               type="submit"
+              disabled={isSubmitting}
               className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-zinc-900 px-4 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-zinc-800"
             >
               Send reset link
