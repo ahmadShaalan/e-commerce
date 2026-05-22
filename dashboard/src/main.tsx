@@ -4,6 +4,9 @@ import { RouterProvider } from 'react-router-dom';
 
 import './index.css';
 import { router } from './routes';
+import { initAuth } from './features/auth/store';
+
+initAuth();
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
