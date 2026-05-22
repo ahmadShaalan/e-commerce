@@ -19,9 +19,9 @@ export const router = createBrowserRouter([
     children: [
       { path: '/', element: <LoginPage /> },
       { path: '/forgot-password', element: <ForgotPasswordPage /> },
-      { path: '/reset-password', element: <ResetPasswordPage /> },
     ],
   },
+  { path: '/reset-password', element: <ResetPasswordPage /> },
 
   // Protected Routes
   {
