@@ -17,7 +17,11 @@ export async function getCurrentProfile(userId: string) {
 }
 
 export const forgotPassword = async (email: string) => {
-  const redirectTo = `${window.location.origin}/forgot-password`;
+  const redirectTo = `${window.location.origin}/reset-password`;
 
   return supabase.auth.resetPasswordForEmail(email, { redirectTo });
+};
+
+export const resetPassword = async (newPassword: string) => {
+  return supabase.auth.updateUser({ password: newPassword });
 };
