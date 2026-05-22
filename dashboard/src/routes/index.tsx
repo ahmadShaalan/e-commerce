@@ -5,11 +5,12 @@ import ProtectedRoute from './ProtectedRoute';
 import PublicRoute from './PublicRoute';
 import { ForgotPasswordPage } from '../features/auth/pages/ForgotPasswordPage';
 import { ResetPasswordPage } from '../features/auth/pages/ResetPasswordPage';
+import ProductPage from '../features/products/pages/ProductPage';
+import { AppLayout } from '../layout/AppLayout';
 
 export const router = createBrowserRouter([
   // public Routes
   {
-    path: '/',
     element: (
       <PublicRoute>
         <Outlet />
@@ -28,8 +29,20 @@ export const router = createBrowserRouter([
     path: '/dashboard',
     element: (
       <ProtectedRoute>
-        <OverviewPage />
+        <AppLayout />
       </ProtectedRoute>
     ),
+
+    children: [
+      {
+        index: true,
+        element: <OverviewPage />,
+      },
+
+      {
+        path: 'products',
+        element: <ProductPage />,
+      },
+    ],
   },
 ]);
