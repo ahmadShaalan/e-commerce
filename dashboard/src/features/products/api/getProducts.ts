@@ -1,9 +1,11 @@
 import { useQuery } from '@tanstack/react-query';
 import { httpClient } from '../../../lib/httpClient';
-import type { Product } from '../types/products.types';
+import type { ProductResponse } from '../types/products.types';
 
-export const getProducts = async (): Promise<Product[]> => {
-  const response = await httpClient.get<Product[]>('/rpc/search_products');
+export const getProducts = async (): Promise<ProductResponse> => {
+  const response = await httpClient.get<ProductResponse>(
+    '/rpc/search_products',
+  );
 
   return response.data;
 };
