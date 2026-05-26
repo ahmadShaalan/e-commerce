@@ -6,6 +6,7 @@ import type { ProductItem, ProductStatus } from '../types/products.types';
 import { getStorageUrl } from '../../../utils/getImgUrlApi';
 import { formatCurrency } from '../../../utils/format';
 import { Pencil, Trash2 } from 'lucide-react';
+import { useDeleteProduct } from '../api/deleteProduct';
 
 const STATUS: Record<ProductStatus, { label: string; className: string }> = {
   draft: { label: 'draft', className: 'bg-zinc-100 text-zinc-700' },
@@ -27,10 +28,15 @@ function stockBadge(stock: number) {
 
 const ProductsList = () => {
   const { data: products, isLoading } = useGetProducts();
+  const { mutateAsync: deleteProduct, isPending } = useDeleteProduct();
 
-  if (isLoading) {
-    return <Spinner />;
-  }
+  const handleDeleteProduct = async (id: string) => {
+    try {
+      await deleteProduct(id);
+    } catch (error) {
+      console.log(error);
+    }
+  };
 
   const columns: DataTableColumn<ProductItem>[] = [
     {
@@ -108,15 +114,20 @@ const ProductsList = () => {
 
           <button
             type="button"
+            disabled={isPending}
+            onClick={() => handleDeleteProduct(p.id)}
             className="flex cursor-pointer items-center justify-center rounded-lg p-2 text-red-500 transition hover:bg-red-50 hover:text-red-600"
           >
             <Trash2 size={18} />
-            <h1>Delete</h1>
           </button>
         </div>
       ),
     },
   ];
+
+  if (isLoading) {
+    return <Spinner />;
+  }
 
   return (
     <DataTable
