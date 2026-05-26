@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 
 type ConfirmDialogProps = {
@@ -12,6 +12,8 @@ type ConfirmDialogProps = {
   onCancel: () => void;
 };
 
+const TRANSITION_MS = 300;
+
 export function ConfirmDialog({
   open,
   title,
@@ -22,6 +24,36 @@ export function ConfirmDialog({
   onConfirm,
   onCancel,
 }: ConfirmDialogProps) {
+  // `mounted` keeps the node in the DOM during the exit animation;
+  // `visible` drives the enter/leave transition classes.
+  const [mounted, setMounted] = useState(open);
+  const [visible, setVisible] = useState(false);
+
+  useEffect(() => {
+    if (open) {
+      // Mount in the closed state, then flip to visible a frame later so the
+      // browser paints the closed styles first; otherwise the two updates are
+      // coalesced into one paint and the enter transition is skipped.
+      let inner = 0;
+      const outer = requestAnimationFrame(() => {
+        setMounted(true);
+        inner = requestAnimationFrame(() => setVisible(true));
+      });
+      return () => {
+        cancelAnimationFrame(outer);
+        cancelAnimationFrame(inner);
+      };
+    }
+
+    // Play the exit transition, then unmount once it has finished.
+    const raf = requestAnimationFrame(() => setVisible(false));
+    const timer = window.setTimeout(() => setMounted(false), TRANSITION_MS);
+    return () => {
+      cancelAnimationFrame(raf);
+      clearTimeout(timer);
+    };
+  }, [open]);
+
   useEffect(() => {
     if (!open) return;
 
@@ -33,18 +65,22 @@ export function ConfirmDialog({
     return () => document.removeEventListener('keydown', onKeyDown);
   }, [open, onCancel]);
 
-  if (!open) return null;
+  if (!mounted) return null;
 
   return createPortal(
     <div
       role="dialog"
       aria-modal="true"
       aria-labelledby="confirm-dialog-title"
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+      className={`fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 transition-opacity duration-300 ease-out ${
+        visible ? 'opacity-100' : 'opacity-0'
+      }`}
       onClick={onCancel}
     >
       <div
-        className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl"
+        className={`w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl transition-all duration-300 ease-out ${
+          visible ? 'translate-y-0 opacity-100' : '-translate-y-12 opacity-0'
+        }`}
         onClick={(e) => e.stopPropagation()}
       >
         <h2
