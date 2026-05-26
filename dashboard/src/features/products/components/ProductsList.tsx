@@ -7,6 +7,8 @@ import { getStorageUrl } from '../../../utils/getImgUrlApi';
 import { formatCurrency } from '../../../utils/format';
 import { Pencil, Trash2 } from 'lucide-react';
 import { useDeleteProduct } from '../api/deleteProduct';
+import { ConfirmDialog } from '../../../components/ConfirmDialog';
+import { useState } from 'react';
 
 const STATUS: Record<ProductStatus, { label: string; className: string }> = {
   draft: { label: 'draft', className: 'bg-zinc-100 text-zinc-700' },
@@ -30,9 +32,16 @@ const ProductsList = () => {
   const { data: products, isLoading } = useGetProducts();
   const { mutateAsync: deleteProduct, isPending } = useDeleteProduct();
 
-  const handleDeleteProduct = async (id: string) => {
+  const [productToDelete, setProductToDelete] = useState<ProductItem | null>(
+    null,
+  );
+
+  const handleDeleteProduct = async () => {
+    if (!productToDelete) return;
+
     try {
-      await deleteProduct(id);
+      await deleteProduct(productToDelete.id);
+      setProductToDelete(null);
     } catch (error) {
       console.log(error);
     }
@@ -114,8 +123,9 @@ const ProductsList = () => {
 
           <button
             type="button"
-            disabled={isPending}
-            onClick={() => handleDeleteProduct(p.id)}
+            onClick={() => {
+              setProductToDelete(p);
+            }}
             className="flex cursor-pointer items-center justify-center rounded-lg p-2 text-red-500 transition hover:bg-red-50 hover:text-red-600"
           >
             <Trash2 size={18} />
@@ -130,11 +140,26 @@ const ProductsList = () => {
   }
 
   return (
-    <DataTable
-      data={products?.items ?? []}
-      columns={columns}
-      rowKey={(p) => p.id}
-    />
+    <>
+      <DataTable
+        data={products?.items ?? []}
+        columns={columns}
+        rowKey={(p) => p.id}
+      />
+
+      <ConfirmDialog
+        open={productToDelete !== null}
+        title="Delete Product"
+        message={
+          productToDelete
+            ? `Are you sure you want to delete "${productToDelete.name}"?`
+            : 'Are you sure you want to delete this product?'
+        }
+        onConfirm={handleDeleteProduct}
+        onCancel={() => setProductToDelete(null)}
+        isConfirming={isPending}
+      />
+    </>
   );
 };
 
