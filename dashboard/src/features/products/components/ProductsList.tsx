@@ -111,6 +111,7 @@ const ProductsList = () => {
             className="flex cursor-pointer items-center justify-center rounded-lg p-2 text-red-500 transition hover:bg-red-50 hover:text-red-600"
           >
             <Trash2 size={18} />
+            <h1>Delete</h1>
           </button>
         </div>
       ),
