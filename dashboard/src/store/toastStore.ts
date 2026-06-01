@@ -3,16 +3,27 @@ import { devtools } from 'zustand/middleware';
 
 export type ToastType = 'success' | 'error' | 'info';
 
+export type ToastPosition =
+  | 'top-left'
+  | 'top-right'
+  | 'top-center'
+  | 'bottom-left'
+  | 'bottom-right'
+  | 'bottom-center';
+
 export interface ToastItem {
   id: number;
   message: string;
   type: ToastType;
   duration: number;
+  // Undefined falls back to the <Toaster /> default position.
+  position?: ToastPosition;
 }
 
 interface ToastOptions {
   type?: ToastType;
   duration?: number;
+  position?: ToastPosition;
 }
 
 interface ToastState {
@@ -42,6 +53,7 @@ export const useToastStore = create<ToastState & ToastAction>()(
           message,
           type: options?.type ?? 'success',
           duration: options?.duration ?? DEFAULT_DURATION,
+          position: options?.position,
         };
         set(
           (state) => ({ toasts: [...state.toasts, item] }),

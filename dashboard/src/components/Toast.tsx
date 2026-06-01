@@ -4,18 +4,11 @@ import { CheckCircle2, Info, X, XCircle } from 'lucide-react';
 import {
   useToastStore,
   type ToastItem,
+  type ToastPosition,
   type ToastType,
 } from '../store/toastStore';
 
 const TRANSITION_MS = 300;
-
-export type ToastPosition =
-  | 'top-left'
-  | 'top-right'
-  | 'top-center'
-  | 'bottom-left'
-  | 'bottom-right'
-  | 'bottom-center';
 
 const VARIANTS: Record<
   ToastType,
@@ -69,19 +62,34 @@ export function Toaster({
 
   if (toasts.length === 0) return null;
 
-  const { container, enterFrom } = POSITIONS[position];
+  // Group toasts by their resolved position (per-toast override, otherwise the
+  // Toaster default) so each corner renders its own stacked container.
+  const groups = new Map<ToastPosition, ToastItem[]>();
+  for (const t of toasts) {
+    const pos = t.position ?? position;
+    const group = groups.get(pos) ?? [];
+    group.push(t);
+    groups.set(pos, group);
+  }
 
   return createPortal(
-    <div className={`fixed z-50 flex gap-3 ${container}`}>
-      {toasts.map((t) => (
-        <Toast
-          key={t.id}
-          toast={t}
-          enterFrom={enterFrom}
-          onDismiss={() => dismiss(t.id)}
-        />
-      ))}
-    </div>,
+    <>
+      {[...groups.entries()].map(([pos, items]) => {
+        const { container, enterFrom } = POSITIONS[pos];
+        return (
+          <div key={pos} className={`fixed z-50 flex gap-3 ${container}`}>
+            {items.map((t) => (
+              <Toast
+                key={t.id}
+                toast={t}
+                enterFrom={enterFrom}
+                onDismiss={() => dismiss(t.id)}
+              />
+            ))}
+          </div>
+        );
+      })}
+    </>,
     document.body,
   );
 }

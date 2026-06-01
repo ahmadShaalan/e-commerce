@@ -8,6 +8,7 @@ import { formatCurrency } from '../../../utils/format';
 import { Pencil, Trash2 } from 'lucide-react';
 import { useDeleteProduct } from '../api/deleteProduct';
 import { ConfirmDialog } from '../../../components/ConfirmDialog';
+import { toast } from '../../../store/toastStore';
 import { useState } from 'react';
 
 const STATUS: Record<ProductStatus, { label: string; className: string }> = {
@@ -41,9 +42,13 @@ const ProductsList = () => {
 
     try {
       await deleteProduct(productToDelete.id);
+      toast.success(`"${productToDelete.name}" was deleted.`, {
+        position: 'top-center',
+      });
       setProductToDelete(null);
     } catch (error) {
       console.log(error);
+      toast.error('Failed to delete product. Please try again.');
     }
   };
 
