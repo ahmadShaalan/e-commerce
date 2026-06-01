@@ -44,7 +44,7 @@ let nextId = 0;
 
 export const useToastStore = create<ToastState & ToastAction>()(
   devtools(
-    (set) => ({
+    (set, get) => ({
       toasts: [],
 
       toast: (message, options) => {
@@ -63,11 +63,11 @@ export const useToastStore = create<ToastState & ToastAction>()(
       },
 
       success: (message, options) =>
-        useToastStore.getState().toast(message, { ...options, type: 'success' }),
+        get().toast(message, { ...options, type: 'success' }),
       error: (message, options) =>
-        useToastStore.getState().toast(message, { ...options, type: 'error' }),
+        get().toast(message, { ...options, type: 'error' }),
       info: (message, options) =>
-        useToastStore.getState().toast(message, { ...options, type: 'info' }),
+        get().toast(message, { ...options, type: 'info' }),
 
       dismiss: (id) =>
         set(
