@@ -7,6 +7,7 @@ import { ForgotPasswordPage } from '../features/auth/pages/ForgotPasswordPage';
 import { ResetPasswordPage } from '../features/auth/pages/ResetPasswordPage';
 import ProductPage from '../features/products/pages/ProductPage';
 import { AppLayout } from '../layout/AppLayout';
+import { CreateProductPage } from '../features/products/pages/CreateProductPage';
 
 export const router = createBrowserRouter([
   // public Routes
@@ -34,14 +35,20 @@ export const router = createBrowserRouter([
     ),
 
     children: [
+      // overview feature
       {
         index: true,
         element: <OverviewPage />,
       },
 
+      // products feature
       {
         path: 'products',
         element: <ProductPage />,
+      },
+      {
+        path: 'products/new',
+        element: <CreateProductPage />,
       },
     ],
   },
