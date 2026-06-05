@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, Navigate, useNavigate } from 'react-router-dom';
 import {
   Zap,
   Mail,
@@ -16,11 +16,13 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { loginSchema, type LoginFormValues } from '../../../types/schemas';
 import { useLogin } from '../api/loginApi';
+import { useAuthStore } from '../store/authStore';
 
 export function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const loginMutation = useLogin();
   const navigate = useNavigate();
+  const session = useAuthStore((state) => state.session);
 
   const {
     register,
@@ -37,6 +39,10 @@ export function LoginPage() {
       },
     });
   };
+
+  if (session) {
+    return <Navigate to="/dashboard" replace />;
+  }
 
   return (
     <div className="grid min-h-screen grid-cols-1 bg-zinc-50 font-sans text-zinc-900 lg:grid-cols-2">
