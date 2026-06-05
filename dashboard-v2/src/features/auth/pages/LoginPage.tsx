@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import {
   Zap,
   Mail,
@@ -12,29 +12,31 @@ import {
   ShoppingBag,
   Star,
 } from 'lucide-react';
-import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-
-const loginSchema = z.object({
-  email: z.string().min(1, 'Email is required').email(),
-  password: z.string().min(6, 'Password is required'),
-});
-
-type LoginFormValues = z.infer<typeof loginSchema>;
+import { loginSchema, type LoginFormValues } from '../../../types/schemas';
+import { useLogin } from '../api/loginApi';
 
 export function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
+  const loginMutation = useLogin();
+  const navigate = useNavigate();
 
   const {
     register,
     handleSubmit,
-    formState: { isSubmitting, errors },
+    formState: { errors },
   } = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
   });
 
-  const onSubmit = () => {};
+  const onSubmit = (data: LoginFormValues) => {
+    loginMutation.mutate(data, {
+      onSuccess: () => {
+        navigate('/dashboard');
+      },
+    });
+  };
 
   return (
     <div className="grid min-h-screen grid-cols-1 bg-zinc-50 font-sans text-zinc-900 lg:grid-cols-2">
@@ -140,12 +142,18 @@ export function LoginPage() {
               Keep me signed in for 30 days
             </label>
 
+            {loginMutation.isError && (
+              <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
+                Invalid email or password. Please try again.
+              </p>
+            )}
+
             <button
               type="submit"
-              disabled={isSubmitting}
-              className="mt-2 cursor-pointer inline-flex w-full items-center justify-center gap-2 rounded-lg bg-zinc-900 px-4 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-zinc-800"
+              disabled={loginMutation.isPending}
+              className="mt-2 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-zinc-900 px-4 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-zinc-800 disabled:opacity-60"
             >
-              Sign in
+              {loginMutation.isPending ? 'Signing in…' : 'Sign in'}
               <ArrowRight className="h-4 w-4" />
             </button>
           </form>
